@@ -6,6 +6,8 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
+    environment:
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:8000}
     depends_on:
       - backend
 
@@ -16,21 +18,29 @@ services:
     volumes:
       - ./backend:/app
     environment:
-      DATABASE_URL: postgresql://secureship:secureship@postgres:5432/secureship
-      OLLAMA_BASE_URL: http://host.docker.internal:11434
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL must be set in .env}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:?OLLAMA_BASE_URL must be set in .env}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-qwen3:8b}
+      FRONTEND_ORIGIN: ${FRONTEND_ORIGIN:-http://localhost:5173}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
 
   postgres:
     image: postgres:16-alpine
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_USER: secureship
-      POSTGRES_PASSWORD: secureship
-      POSTGRES_DB: secureship
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER must be set in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in .env}
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB must be set in .env}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
     volumes:
       - postgres_data:/var/lib/postgresql/data
 

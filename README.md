@@ -12,6 +12,7 @@ AI-gated shipment support chat aplikacija.
 ## Pokretanje
 
 ```bash
+cp .env.example .env
 docker compose up --build
 ```
 
