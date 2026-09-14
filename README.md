@@ -1,15 +1,15 @@
 # SecureShip
 
-AI-gated shipment support chat aplikacija.
+AI-gated shipment support chat application.
 
 ## Stack
 
 - **Frontend:** React + TypeScript (Vite)
 - **Backend:** FastAPI (Python)
-- **Baza:** PostgreSQL
-- **LLM:** Ollama (`qwen3:8b`), pokreće se lokalno na hostu — NE u Dockeru
+- **Database:** PostgreSQL
+- **LLM:** Ollama (`qwen3:8b`), runs locally on the host — NOT in Docker
 
-## Pokretanje
+## Running
 
 ```bash
 cp .env.example .env
@@ -22,11 +22,11 @@ docker compose up --build
 
 ## Ollama
 
-Ollama se ne pokreće kroz `docker-compose.yml`. Potrebno je da bude
-pokrenuta lokalno na hostu (`ollama serve`, model `qwen3:8b`). Backend
-joj pristupa preko `host.docker.internal:11434`.
+Ollama is not started via `docker-compose.yml`. It must be running
+locally on the host (`ollama serve`, model `qwen3:8b`). The backend
+reaches it via `host.docker.internal:11434`.
 
-## Struktura
+## Structure
 
 ```
 secureship/
