@@ -7,11 +7,54 @@
   gap: 16px;
 }
 
+#chat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+#chat-header h1 {
+  margin: 0;
+  font-size: 32px;
+}
+
+.verified-badge {
+  font-size: 14px;
+  font-weight: 600;
+  color: #2a8f4f;
+  background: rgba(42, 143, 79, 0.1);
+  border: 1px solid rgba(42, 143, 79, 0.3);
+  border-radius: 999px;
+  padding: 4px 12px;
+  white-space: nowrap;
+}
+
+.escalated-banner {
+  font-size: 13px;
+  text-align: center;
+  color: var(--text);
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin: 0;
+}
+
 #messages {
   display: flex;
   flex-direction: column;
   gap: 8px;
   min-height: 200px;
+}
+
+.system-event {
+  text-align: center;
+  font-size: 13px;
+  font-style: italic;
+  color: var(--text);
+  opacity: 0.7;
+  margin: 4px 0;
 }
 
 .error {

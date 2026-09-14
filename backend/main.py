@@ -1,32 +1,27 @@
 import logging
 
-import httpx
-from fastapi import FastAPI, HTTPException, Response
+from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
 
 from config import settings
 from db import check_db_connection
-from ollama_client import OllamaResponseError, ask_ollama
+from routers import chat, session, verify
 
-logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO, format="%(levelname)-5.5s [%(name)s] %(message)s")
 
 app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[settings.frontend_origin],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-
-class ChatRequest(BaseModel):
-    message: str
-
-
-class ChatResponse(BaseModel):
-    reply: str
+app.include_router(session.router)
+app.include_router(chat.router)
+app.include_router(verify.router)
 
 
 @app.get("/health")
@@ -36,15 +31,3 @@ async def health(response: Response):
         response.status_code = 503
         return {"status": "error", "db": "error"}
     return {"status": "ok", "db": "ok"}
-
-
-@app.post("/api/chat", response_model=ChatResponse)
-async def chat(payload: ChatRequest):
-    if not payload.message.strip():
-        raise HTTPException(status_code=400, detail="message must not be empty")
-    try:
-        reply = await ask_ollama(payload.message)
-    except (httpx.HTTPError, OllamaResponseError) as exc:
-        logger.exception("Ollama request failed")
-        raise HTTPException(status_code=502, detail="Failed to get a response from the language model") from exc
-    return ChatResponse(reply=reply)
