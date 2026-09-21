@@ -75,18 +75,28 @@ function App() {
       </div>
       {escalatedToHumanAt && <p className="escalated-banner">You're now chatting with a member of our team.</p>}
       <div id="messages">
-        {messages.map((m) => (
-          <p key={m.key} className={m.role === 'system_event' ? 'system-event' : m.role}>
-            {m.role === 'system_event' ? (
-              m.content
-            ) : (
-              <>
+        {messages.map((m) =>
+          m.role === 'system_event' ? (
+            <p key={m.key} className="system-event">
+              {m.content}
+            </p>
+          ) : (
+            <div key={m.key} className={`message-row ${m.role}`}>
+              <div className={`bubble ${m.role}`}>
                 <strong>{m.role === 'user' ? 'You' : 'Assistant'}:</strong> {m.content}
-              </>
-            )}
-          </p>
-        ))}
-        {loading && <p>Thinking…</p>}
+              </div>
+            </div>
+          ),
+        )}
+        {loading && (
+          <div className="message-row assistant">
+            <div className="bubble assistant bubble-loading" aria-live="polite">
+              <span className="typing-dot" />
+              <span className="typing-dot" />
+              <span className="typing-dot" />
+            </div>
+          </div>
+        )}
       </div>
       {error && <p className="error">{error}</p>}
       <div id="chat-input">

@@ -6,66 +6,87 @@
   align-items: center;
   justify-content: center;
   z-index: 50;
-  padding: 16px;
+  padding: var(--space-4);
 }
 
 .modal {
   position: relative;
   background: var(--bg);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   box-shadow: var(--shadow);
-  padding: 28px 24px;
+  padding: var(--space-6) var(--space-5);
   width: 100%;
   max-width: 360px;
   text-align: left;
 }
 
 .modal h2 {
-  font-size: 20px;
-  margin: 0 0 8px;
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 var(--space-2);
+  color: var(--text-h);
 }
 
 .modal p {
   font-size: 14px;
-  margin: 0 0 16px;
+  margin: 0 0 var(--space-4);
+  color: var(--text);
 }
 
 .modal input {
   width: 100%;
   box-sizing: border-box;
-  font-size: 24px;
+  font-size: 22px;
   letter-spacing: 8px;
   text-align: center;
-  padding: 10px 12px;
+  font-family: var(--mono);
+  padding: var(--space-3);
+  color: var(--text-h);
+  background: var(--bg);
   border: 1px solid var(--border);
-  border-radius: 8px;
-  margin-bottom: 8px;
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-2);
+  outline: none;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.modal input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-bg);
 }
 
 .modal-error {
-  color: #d33;
+  color: var(--error);
   font-size: 13px;
+  margin: 0 0 var(--space-2);
 }
 
 .modal-success {
-  color: #2a8f4f;
+  color: var(--success);
   font-size: 13px;
+  margin: 0 0 var(--space-2);
 }
 
 .modal-actions {
   display: flex;
-  gap: 8px;
-  margin-top: 12px;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
 }
 
 .modal-actions button {
   flex: 1;
-  padding: 10px;
-  font-size: 15px;
-  border-radius: 8px;
+  padding: var(--space-3);
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: var(--radius-pill);
   border: 1px solid var(--border);
   cursor: pointer;
+  transition:
+    opacity 0.15s ease,
+    background 0.15s ease;
 }
 
 .modal-actions button:first-child {
@@ -74,17 +95,35 @@
   border-color: var(--accent);
 }
 
+.modal-actions button:first-child:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.modal-actions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .modal-secondary {
   background: transparent;
+  color: var(--text);
 }
 
 .modal-close {
   position: absolute;
-  top: 8px;
-  right: 12px;
+  top: var(--space-2);
+  right: var(--space-3);
   background: none;
   border: none;
   font-size: 22px;
+  line-height: 1;
   cursor: pointer;
   color: var(--text);
+  padding: var(--space-1);
+  border-radius: var(--radius-sm);
+  transition: background 0.15s ease;
+}
+
+.modal-close:hover {
+  background: var(--social-bg);
 }
