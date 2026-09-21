@@ -7,8 +7,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from config import settings
 from db import get_db
 from models import ChatSession, SessionState
+from services.transcript import append_message
 
 SESSION_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 30
+
+NEW_SESSION_GREETING = (
+    "Hi! 👋 I'm your AI shipment assistant. I can help you with your shipment "
+    "and delivery questions. How can I help you today?"
+)
 
 
 async def get_current_session(
@@ -29,6 +35,7 @@ async def get_current_session(
     if session is None:
         token = secrets.token_urlsafe(32)
         session = ChatSession(session_token=token, state=SessionState.anonymous, transcript=[])
+        append_message(session, "assistant", NEW_SESSION_GREETING)
         db.add(session)
         await db.flush()
         response.set_cookie(
