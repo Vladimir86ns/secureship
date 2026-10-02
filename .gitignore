@@ -24,3 +24,9 @@ venv/
 
 # Logs
 *.log
+
+# AI working files
+.ai/
+
+# Local copy of the program spec (internal document, not committed)
+docs/SecureShip-5Week-Program.md
