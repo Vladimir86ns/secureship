@@ -12,7 +12,16 @@ def test_normalize_text_does_not_expand_abbreviations():
     assert normalize_text("123 Elm St") != normalize_text("123 Elm Street")
 
 
-def test_normalize_phone_strips_non_digits():
-    assert normalize_phone("(555) 123-4567") == "5551234567"
+def test_normalize_phone_canonical_e164_digits():
+    # 10 digits = NANP without the country code -> "1" added (stored customers are E.164)
+    assert normalize_phone("(555) 123-4567") == "15551234567"
     assert normalize_phone("+1 555-123-4567") == "15551234567"
-    assert normalize_phone("555.123.4567") == "5551234567"
+    assert normalize_phone("555.123.4567") == "15551234567"
+    assert normalize_phone("1-555-123-4567") == "15551234567"
+    assert normalize_phone("001 555 123 4567") == "15551234567"
+    assert normalize_phone("+15551234567") == "15551234567"
+
+
+def test_normalize_phone_keeps_other_country_codes():
+    assert normalize_phone("+44 20 7946 0000") == "442079460000"
+    assert normalize_phone("") == ""

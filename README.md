@@ -20,6 +20,19 @@ docker compose up --build
 - Backend: http://localhost:8000/health
 - Postgres: localhost:5432
 
+## Seed data
+
+Section 4.4 mock data (customers, shipments, packages) — all invented, reproducible, safe to run twice:
+
+```bash
+docker compose exec backend python -m scripts.seed_data            # writes (upsert)
+docker compose exec backend python -m scripts.seed_data --dry-run  # counts only
+```
+
+Script: `backend/scripts/seed_data.py`. Demo customers for verification: [`docs/demo-customers.md`](docs/demo-customers.md).
+If the script reports duplicate customers (e.g. from an older seed), start from a clean dev database:
+`docker compose down -v && docker compose up -d --build`, then seed again.
+
 ## Ollama
 
 Ollama is not started via `docker-compose.yml`. It must be running

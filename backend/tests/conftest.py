@@ -13,7 +13,7 @@ FIXTURE_CUSTOMER = {
     "first_name": "Testina",
     "last_name": "Fixtureperson",
     "address": "1 Test Fixture Lane",
-    "phone_number": "555-000-1111",
+    "phone_number": "+15550001111",  # E.164, as stored (Section 4.4)
 }
 
 
@@ -21,7 +21,7 @@ FIXTURE_CUSTOMER = {
 async def db() -> AsyncGenerator[AsyncSession, None]:
     """Each test runs inside one outer transaction that is rolled back at
     teardown, so tests never touch (or destroy) the real dev database's
-    persistent data — e.g. fixture customers from scripts/seed_customers.py.
+    persistent data — e.g. the mock data from scripts/seed_data.py.
     The app's `get_db` dependency is overridden to this same session so
     requests made through `client` see exactly what the test set up.
     """
