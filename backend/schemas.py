@@ -4,10 +4,16 @@ from typing import Literal
 from pydantic import BaseModel
 
 
+EscalationStep = Literal["acknowledging", "color_shift", "human_joined", "reading_up", "greeting"]
+
+
 class ChatTurn(BaseModel):
     role: Literal["user", "assistant", "system_event"]
     content: str
     at: datetime
+    # Section 6.2b: which step of the scripted human hand-off this message is (null for every other message).
+    # The frontend changes the chat window color when the "color_shift" message is shown.
+    escalation_step: EscalationStep | None = None
 
 
 class ChatRequest(BaseModel):

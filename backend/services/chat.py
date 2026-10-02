@@ -142,7 +142,7 @@ async def execute_tool(
 def _extract_new_turns(session: ChatSession, start_index: int) -> list[ChatTurn]:
     new_entries = session.transcript[start_index:]
     return [
-        ChatTurn(role=entry["role"], content=entry["content"], at=entry["at"])
+        ChatTurn(role=entry["role"], content=entry["content"], at=entry["at"], escalation_step=entry.get("escalation_step"))
         for entry in visible_entries(new_entries)
     ]
 

@@ -10,6 +10,7 @@ export * from './chatResponse';
 export * from './chatResponseEscalatedToHumanAt';
 export * from './chatResponseVerifiedAt';
 export * from './chatTurn';
+export * from './chatTurnEscalationStep';
 export * from './chatTurnRole';
 export * from './hTTPValidationError';
 export * from './sessionResponse';

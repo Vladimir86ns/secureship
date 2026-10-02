@@ -3,9 +3,11 @@ from datetime import datetime, timezone
 from models import ChatSession, SessionState
 
 
-def append_message(session: ChatSession, role: str, content: str) -> None:
-    """Append a user-facing entry (rendered by the frontend)."""
+def append_message(session: ChatSession, role: str, content: str, escalation_step: str | None = None) -> None:
+    """Append a user-facing entry (rendered by the frontend). escalation_step tags a Section 6.2b hand-off message."""
     entry = {"role": role, "content": content, "at": datetime.now(timezone.utc).isoformat()}
+    if escalation_step is not None:
+        entry["escalation_step"] = escalation_step
     session.transcript = [*session.transcript, entry]
 
 

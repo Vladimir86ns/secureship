@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from config import settings
 from models import ChatSession, SessionState
+from services.escalation import ESCALATION_STEPS
 from services.verification import generate_code, hash_code
 from tests.conftest import FIXTURE_CUSTOMER
 from tests.helpers import text_message, tool_call_message
@@ -39,6 +40,17 @@ async def test_escalation_triggers_once_and_produces_expected_sequence(
 
     row = await _get_session_row(db, client)
     assert row.escalated_agent_name is not None
+    # Section 6.2b order: Acknowledging -> ColorShift -> HumanJoined -> ReadingUp -> Greeting
+    steps = [m["escalation_step"] for m in body["messages"] if m["escalation_step"]]
+    assert steps == list(ESCALATION_STEPS) == ["acknowledging", "color_shift", "human_joined", "reading_up", "greeting"]
+    by_step = {m["escalation_step"]: m for m in body["messages"] if m["escalation_step"]}
+    assert by_step["acknowledging"]["role"] == "assistant"
+    assert by_step["color_shift"]["role"] == "system_event"  # the window changes color when this one is shown
+    assert by_step["human_joined"]["content"] == f"{row.escalated_agent_name} has joined the chat."
+    assert by_step["reading_up"]["content"] == f"Hello, my name is {row.escalated_agent_name}, let me just read through the chat..."
+    assert "up to speed" in by_step["greeting"]["content"]
+    # the user's own message carries no step
+    assert all(m["escalation_step"] is None for m in body["messages"] if m["role"] == "user")
     # State resumed back to anonymous after the scripted hand-off completed.
     assert row.state == SessionState.anonymous
 
@@ -48,6 +60,11 @@ async def test_escalation_triggers_once_and_produces_expected_sequence(
     assert resp2.status_code == 200
     contents2 = [m["content"] for m in resp2.json()["messages"]]
     assert not any("joined the chat" in c.lower() for c in contents2)
+    assert all(m["escalation_step"] is None for m in resp2.json()["messages"])
+
+    # a reload (GET /api/session) keeps the steps, so the window stays in the "human" color
+    session = (await client.get("/api/session")).json()
+    assert [m["escalation_step"] for m in session["transcript"] if m["escalation_step"]] == list(ESCALATION_STEPS)
 
 
 @pytest.mark.asyncio
@@ -108,6 +125,9 @@ async def test_escalation_from_verified_state_resumes_verified_and_keeps_it(
     assert any("joined the chat" in c.lower() for c in contents)
     # Personalized greeting, using the identity given during the earlier turn.
     assert any(FIXTURE_CUSTOMER["first_name"] in c for c in contents)
+    steps = [m for m in body2["messages"] if m["escalation_step"]]
+    assert [m["escalation_step"] for m in steps] == list(ESCALATION_STEPS)
+    assert steps[-1]["content"].startswith(f"Hey {FIXTURE_CUSTOMER['first_name']},")
 
     row = await _get_session_row(db, client)
     # State resumed to verified, not stuck at escalated_to_human, and the

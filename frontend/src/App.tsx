@@ -6,6 +6,8 @@ import type { DisplayMessage } from './types'
 import './App.css'
 
 const REVEAL_STAGGER_MS = 500
+// Section 6.2b: the chat window changes color when this step of the scripted human hand-off is shown
+const COLOR_SHIFT_STEP = 'color_shift'
 
 let keyCounter = 0
 function nextKey(): string {
@@ -19,7 +21,7 @@ function App() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [verifiedAt, setVerifiedAt] = useState<string | null>(null)
-  const [escalatedToHumanAt, setEscalatedToHumanAt] = useState<string | null>(null)
+  const [humanMode, setHumanMode] = useState(false)
   const [requiresCodeModal, setRequiresCodeModal] = useState(false)
   const hydrated = useRef(false)
 
@@ -32,7 +34,7 @@ function App() {
     const data = sessionQuery.data
     setMessages(data.transcript.map((m) => ({ ...m, key: nextKey() })))
     setVerifiedAt(data.verified_at ?? null)
-    setEscalatedToHumanAt(data.escalated_to_human_at ?? null)
+    setHumanMode(data.transcript.some((m) => m.escalation_step === COLOR_SHIFT_STEP))
     setRequiresCodeModal(data.requires_code_modal)
   }, [sessionQuery.data])
 
@@ -41,6 +43,8 @@ function App() {
       setTimeout(
         () => {
           setMessages((prev) => [...prev, { ...m, key: nextKey() }])
+          // after "Acknowledging" is shown, together with the "ColorShift" message - not before the sequence
+          if (m.escalation_step === COLOR_SHIFT_STEP) setHumanMode(true)
         },
         i * REVEAL_STAGGER_MS,
       )
@@ -58,7 +62,6 @@ function App() {
       const response = await chatMutation.mutateAsync({ data: { message: text } })
       revealMessages(response.messages)
       setVerifiedAt(response.verified_at ?? null)
-      setEscalatedToHumanAt(response.escalated_to_human_at ?? null)
       setRequiresCodeModal(response.requires_code_modal)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong')
@@ -68,12 +71,11 @@ function App() {
   }
 
   return (
-    <section id="chat">
+    <section id="chat" className={humanMode ? 'chat--human' : undefined}>
       <div id="chat-header">
         <h1>SecureShip Chat</h1>
         {verifiedAt && <span className="verified-badge">✓ Identity verified</span>}
       </div>
-      {escalatedToHumanAt && <p className="escalated-banner">You're now chatting with a member of our team.</p>}
       <div id="messages">
         {messages.map((m) =>
           m.role === 'system_event' ? (

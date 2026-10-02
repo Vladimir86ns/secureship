@@ -5,9 +5,11 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { ChatTurnRole } from './chatTurnRole';
+import type { ChatTurnEscalationStep } from './chatTurnEscalationStep';
 
 export interface ChatTurn {
   role: ChatTurnRole;
   content: string;
   at: string;
+  escalation_step?: ChatTurnEscalationStep;
 }
