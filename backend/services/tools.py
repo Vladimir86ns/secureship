@@ -20,6 +20,7 @@ from sqlalchemy.orm import selectinload
 
 from models import ChatSession, SessionState, Shipment
 from services.customer_match import match_customer
+from services.normalization import TRACKING_NUMBER_RE, normalize_tracking_number
 from services.transcript import transition_state, visible_entries
 from services.verification import dispatch_verification_code
 
@@ -117,8 +118,6 @@ async def _tool_send_verification_code(
 
 
 _LOG_TRACKING_FILTER = "_log_tracking_filter"  # for the log line only; removed before the model sees the result
-_TRACKING_SEPARATORS_RE = re.compile(r"[\s-]+")
-_TRACKING_RE = re.compile(r"^[A-Z0-9]{1,40}$")
 
 
 def _normalize_tracking(value: Any) -> str | None:
@@ -128,10 +127,10 @@ def _normalize_tracking(value: Any) -> str | None:
         return None
     if not isinstance(value, str):
         raise ToolDenied("invalid_arguments", problem="tracking_number_not_a_string")
-    normalized = _TRACKING_SEPARATORS_RE.sub("", value).upper()
+    normalized = normalize_tracking_number(value)
     if not normalized:
         return None
-    if not _TRACKING_RE.match(normalized):
+    if not TRACKING_NUMBER_RE.match(normalized):
         raise ToolDenied("invalid_arguments", problem="tracking_number_not_a_tracking_number")
     return normalized
 
@@ -140,7 +139,7 @@ def _tracking_in_conversation(session: ChatSession, tracking_number: str) -> boo
     """Did this tracking number (same normalization) appear in a visible message of THIS session — typed by
     the visitor or in an earlier assistant reply? A number only the model came up with does not count."""
     return any(
-        tracking_number in _TRACKING_SEPARATORS_RE.sub("", str(entry.get("content") or "")).upper()
+        tracking_number in normalize_tracking_number(str(entry.get("content") or ""))
         for entry in visible_entries(session.transcript)
     )
 

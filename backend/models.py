@@ -60,7 +60,7 @@ class Shipment(Base):
     __tablename__ = "shipments"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    # RESTRICT: a customer with shipments cannot be deleted (the admin decides in Week 4).
+    # RESTRICT: a customer with shipments cannot be deleted — the admin API answers 409 (delete/reassign them first).
     customer_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("customers.id", ondelete="RESTRICT"), nullable=False, index=True
     )
@@ -103,12 +103,13 @@ class ChatSession(Base):
     session_token: Mapped[str] = mapped_column(String, unique=True, index=True, nullable=False)
 
     # Set by verify_identity on a match. Not proof of verification.
+    # SET NULL: an admin may delete the customer; the session keeps its transcript and fails closed.
     pending_customer_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("customers.id"), nullable=True
+        UUID(as_uuid=True), ForeignKey("customers.id", ondelete="SET NULL"), nullable=True
     )
     # Set only by check_verification_code on success — promoted from pending_customer_id.
     customer_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("customers.id"), nullable=True
+        UUID(as_uuid=True), ForeignKey("customers.id", ondelete="SET NULL"), nullable=True
     )
 
     state: Mapped[SessionState] = mapped_column(

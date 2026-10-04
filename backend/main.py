@@ -1,11 +1,13 @@
 import logging
 
-from fastapi import FastAPI, Response
+from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from config import settings
 from db import check_db_connection
-from routers import chat, session, verify
+from routers import admin, chat, session, verify
+from services.admin import AdminError
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)-5.5s [%(name)s] %(message)s")
 
@@ -22,6 +24,13 @@ app.add_middleware(
 app.include_router(session.router)
 app.include_router(chat.router)
 app.include_router(verify.router)
+app.include_router(admin.router)
+
+
+@app.exception_handler(AdminError)
+async def admin_error(request: Request, exc: AdminError) -> JSONResponse:
+    detail = {"error": exc.error, "error_description": exc.description, **exc.extra}
+    return JSONResponse(status_code=exc.status_code, content={"detail": detail})
 
 
 @app.get("/health")

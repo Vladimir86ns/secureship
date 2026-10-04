@@ -3,6 +3,8 @@ import re
 _PUNCT_RE = re.compile(r"[^\w\s]")
 _WHITESPACE_RE = re.compile(r"\s+")
 _NON_DIGIT_RE = re.compile(r"\D")
+_TRACKING_SEPARATORS_RE = re.compile(r"[\s-]+")
+TRACKING_NUMBER_RE = re.compile(r"^[A-Z0-9]{1,40}$")
 
 
 def normalize_text(value: str) -> str:
@@ -34,3 +36,10 @@ def normalize_phone(value: str) -> str:
     if len(digits) == 10:
         digits = "1" + digits
     return digits
+
+
+def normalize_tracking_number(value: str) -> str:
+    """trim + upper case + no spaces/dashes ("ff-7512 3495" -> "FF75123495"). Shipments are stored in this form and
+    lookup_shipments normalizes the visitor's number the same way, so the two always compare equal.
+    A valid result matches TRACKING_NUMBER_RE; "" means nothing was given."""
+    return _TRACKING_SEPARATORS_RE.sub("", value).upper()

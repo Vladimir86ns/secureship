@@ -8,6 +8,9 @@ services:
       - /app/node_modules
     environment:
       VITE_API_URL: ${VITE_API_URL:-http://localhost:8000}
+      VITE_AUTH0_DOMAIN: ${VITE_AUTH0_DOMAIN:?VITE_AUTH0_DOMAIN must be set in .env}
+      VITE_AUTH0_CLIENT_ID: ${VITE_AUTH0_CLIENT_ID:?VITE_AUTH0_CLIENT_ID must be set in .env}
+      VITE_AUTH0_AUDIENCE: ${VITE_AUTH0_AUDIENCE:?VITE_AUTH0_AUDIENCE must be set in .env}
     depends_on:
       - backend
 
@@ -28,6 +31,9 @@ services:
       VERIFICATION_RESEND_COOLDOWN_SECONDS: ${VERIFICATION_RESEND_COOLDOWN_SECONDS:-30}
       VERIFICATION_MAX_ATTEMPTS: ${VERIFICATION_MAX_ATTEMPTS:-5}
       TOOL_CALL_MAX_ROUNDS: ${TOOL_CALL_MAX_ROUNDS:-4}
+      AUTH0_DOMAIN: ${AUTH0_DOMAIN:?AUTH0_DOMAIN must be set in .env}
+      AUTH0_AUDIENCE: ${AUTH0_AUDIENCE:?AUTH0_AUDIENCE must be set in .env}
+      AUTH0_ADMIN_CLIENT_ID: ${AUTH0_ADMIN_CLIENT_ID:?AUTH0_ADMIN_CLIENT_ID must be set in .env}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:

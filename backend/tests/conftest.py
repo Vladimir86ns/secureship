@@ -1,13 +1,17 @@
 from collections.abc import AsyncGenerator
 
+import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
+import admin_auth
+from config import settings
 from db import engine, get_db
 from main import app
 from models import Customer
 from services.normalization import normalize_phone, normalize_text
+from tests.admin_tokens import ADMIN_CLIENT_ID, AUDIENCE, TEST_DOMAIN, FakeIdP
 
 FIXTURE_CUSTOMER = {
     "first_name": "Testina",
@@ -15,6 +19,28 @@ FIXTURE_CUSTOMER = {
     "address": "1 Test Fixture Lane",
     "phone_number": "+15550001111",  # E.164, as stored (Section 4.4)
 }
+
+
+async def _no_network_fetch(url: str, **_):
+    raise AssertionError(f"a test tried to reach the identity provider: {url}")
+
+
+@pytest.fixture(autouse=True)
+def _no_real_idp(monkeypatch):
+    """No test ever validates against the real Auth0 tenant from .env: a test tenant is configured, and fetching its
+    keys fails unless the test asks for the `idp` fixture (a local fake tenant)."""
+    monkeypatch.setattr(settings, "auth0_domain", TEST_DOMAIN)
+    monkeypatch.setattr(settings, "auth0_audience", AUDIENCE)
+    monkeypatch.setattr(settings, "auth0_admin_client_id", ADMIN_CLIENT_ID)
+    monkeypatch.setattr(admin_auth, "verifier", admin_auth.build_verifier(custom_fetch=_no_network_fetch))
+
+
+@pytest.fixture
+def idp(monkeypatch) -> FakeIdP:
+    """A fake Auth0 tenant (tests/admin_tokens.py); idp.headers() = a valid admin Authorization header."""
+    fake = FakeIdP()
+    monkeypatch.setattr(admin_auth, "verifier", admin_auth.build_verifier(custom_fetch=fake.fetch))
+    return fake
 
 
 @pytest_asyncio.fixture

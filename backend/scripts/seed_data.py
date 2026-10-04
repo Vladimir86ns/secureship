@@ -31,7 +31,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from db import async_session_factory
 from models import Customer, Package, Shipment, ShipmentStatus
-from services.normalization import normalize_phone, normalize_text
+from services.customer_identity import normalized_identity
 
 SEED = 4404
 NAMESPACE = uuid.UUID("5ec05e1b-4a5e-4d1a-9a44-000000004404")
@@ -128,10 +128,7 @@ def _customer_row(n: int, c: dict) -> dict:
         "last_name": c["last_name"],
         "address": c["address"],
         "phone_number": c["phone_number"],
-        "normalized_first_name": normalize_text(c["first_name"]),
-        "normalized_last_name": normalize_text(c["last_name"]),
-        "normalized_address": normalize_text(c["address"]),
-        "normalized_phone_number": normalize_phone(c["phone_number"]),
+        **normalized_identity(c["first_name"], c["last_name"], c["address"], c["phone_number"]),
     }
 
 
