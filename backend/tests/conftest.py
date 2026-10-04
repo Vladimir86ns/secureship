@@ -58,3 +58,25 @@ async def client(db: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
         yield ac
+
+
+@pytest_asyncio.fixture
+async def seeded(db: AsyncSession) -> dict:
+    """Section 4.4 seed data (Dana Demo, Jane Doe, …) inside the test transaction — rolled back at teardown.
+
+    -> {"data": generate() output, "dana": [shipment dicts], "jane": [shipment dicts], "jane_id": uuid}
+    """
+    from datetime import datetime, timezone
+
+    from scripts.seed_data import generate, upsert
+
+    data = generate(datetime.now(timezone.utc).date())
+    await upsert(db, data)
+    await db.flush()
+    dana_id, jane_id = data["customers"][0]["id"], data["customers"][1]["id"]
+    return {
+        "data": data,
+        "dana": [s for s in data["shipments"] if s["customer_id"] == dana_id],
+        "jane": [s for s in data["shipments"] if s["customer_id"] == jane_id],
+        "jane_id": jane_id,
+    }

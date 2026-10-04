@@ -30,6 +30,7 @@ docker compose exec backend python -m scripts.seed_data --dry-run  # counts only
 ```
 
 Script: `backend/scripts/seed_data.py`. Demo customers for verification: [`docs/demo-customers.md`](docs/demo-customers.md).
+Prompt-injection test (another customer's data, Week 3): [`docs/security/prompt-injection-test.md`](docs/security/prompt-injection-test.md).
 If the script reports duplicate customers (e.g. from an older seed), start from a clean dev database:
 `docker compose down -v && docker compose up -d --build`, then seed again.
 

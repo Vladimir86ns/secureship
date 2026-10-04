@@ -49,10 +49,3 @@ async def get_current_session(
 
     return session
 
-
-def require_verified(session: ChatSession) -> None:
-    """Not used by anything in Week 2. This is the hook Week 3's shipment tools
-    (e.g. lookup_shipments) call before executing any real lookup.
-    """
-    if session.customer_id is None or session.verified_at is None:
-        raise PermissionError("verification_required")

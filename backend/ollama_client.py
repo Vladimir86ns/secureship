@@ -1,8 +1,11 @@
+import logging
 from typing import Any
 
 import httpx
 
 from config import settings
+
+logger = logging.getLogger("secureship.ollama")
 
 
 class OllamaResponseError(Exception):
@@ -41,4 +44,13 @@ async def chat_completion(
     message = data.get("message") if isinstance(data, dict) else None
     if not isinstance(message, dict):
         raise OllamaResponseError("Ollama response did not contain a message")
+    if not (message.get("content") or "").strip() and not message.get("tool_calls"):
+        # Diagnostics only — counts and flags, never message text (no PII).
+        thinking = message.get("thinking") or ""
+        logger.warning(
+            "empty model reply (no content, no tool_calls) done_reason=%s thinking=%s thinking_chars=%d "
+            "eval_count=%s prompt_eval_count=%s history_messages=%d tools_offered=%d",
+            data.get("done_reason"), "yes" if thinking else "no", len(thinking), data.get("eval_count"),
+            data.get("prompt_eval_count"), len(history), len(tools or []),
+        )
     return message

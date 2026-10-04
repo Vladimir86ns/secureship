@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from config import settings
 from models import ChatSession, SessionState
-from services.chat import _tool_verify_identity
+from services.tools import _tool_verify_identity
 from services.verification import dispatch_verification_code
 from tests.conftest import FIXTURE_CUSTOMER
 from tests.helpers import text_message, tool_call_message

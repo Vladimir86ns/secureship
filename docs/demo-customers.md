@@ -26,6 +26,8 @@ The 6-digit code is the mock SMS: `docker compose logs -f backend` → `[MOCK SM
 
 ## Jane Doe — the second customer ("someone else's data" checks, Week 3)
 
+Used by the prompt-injection test: [`docs/security/prompt-injection-test.md`](security/prompt-injection-test.md).
+
 | Field | Value |
 |---|---|
 | First name | Jane |
