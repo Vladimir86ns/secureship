@@ -16,6 +16,15 @@ export default defineConfig({
           path: 'src/api/mutator.ts',
           name: 'apiMutator',
         },
+        tags: {
+          // /admin/* — Auth0 Bearer token, no chat cookie (src/api/adminMutator.ts)
+          admin: {
+            mutator: {
+              path: 'src/api/adminMutator.ts',
+              name: 'adminMutator',
+            },
+          },
+        },
         query: {
           useQuery: true,
         },

@@ -5,6 +5,9 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from './adminErrorDetail';
+export * from './adminErrorDetailShipmentCount';
+export * from './adminErrorResponse';
 export * from './chatRequest';
 export * from './chatResponse';
 export * from './chatResponseEscalatedToHumanAt';
@@ -12,11 +15,22 @@ export * from './chatResponseVerifiedAt';
 export * from './chatTurn';
 export * from './chatTurnEscalationStep';
 export * from './chatTurnRole';
+export * from './customerIn';
+export * from './customerOut';
 export * from './hTTPValidationError';
+export * from './listPackagesParams';
+export * from './listShipmentsParams';
+export * from './packageIn';
+export * from './packageInDeclaredValue';
+export * from './packageInWeightKg';
+export * from './packageOut';
 export * from './sessionResponse';
 export * from './sessionResponseCustomerFirstName';
 export * from './sessionResponseEscalatedToHumanAt';
 export * from './sessionResponseVerifiedAt';
+export * from './shipmentIn';
+export * from './shipmentOut';
+export * from './shipmentStatus';
 export * from './validationError';
 export * from './validationErrorLocItem';
 export * from './verifyRequest';

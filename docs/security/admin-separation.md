@@ -83,4 +83,15 @@ docker compose exec backend pytest -q tests/test_admin_auth.py tests/test_admin_
 
 | Date | Step | Result | `secureship.admin` / `secureship.tools` log line(s) | Outcome |
 |---|---|---|---|---|
-| | | | | |
+| 2026-10-04 | 1 — `curl -i http://localhost:8000/admin/customers` (owner) | 400 | not recorded | pass |
+| 2026-10-04 – 2026-10-06 | 3 — Auth0 login at `/admin` with email and password (owner, browser) | Login works. First attempt failed with Auth0 "Client is not authorized to access resource server"; fixed in Auth0 Dashboard: APIs → SecureShip API → Application Access → User-Delegated Access for the SecureShip Admin application | not recorded | pass |
+| 2026-10-04 – 2026-10-06 | 3 — one edit each for a customer, a shipment and a package in the admin panel (owner, browser) | All three edits saved | not recorded | pass |
+| 2026-10-04 – 2026-10-06 | 3 — two tabs: admin changes a shipment's status; the verified chat session, on its next question (owner, browser) | Chat shows the new status | not recorded | pass |
+| 2026-10-06 | 1 — `curl -i http://localhost:8000/admin/customers` (owner) | 400 | not recorded | pass |
+| 2026-10-06 | `pytest tests/test_admin_auth.py tests/test_admin_chat_separation.py` (owner) | 33 passed | — | pass |
+| 2026-10-11 | 1 — `curl -i http://localhost:8000/admin/customers` | `HTTP/1.1 400 Bad Request` | `admin DENIED status=400 error=invalid_request path=/admin/customers` | pass |
+| 2026-10-11 | `curl -i -H "Authorization: Bearer abc" http://localhost:8000/admin/customers` | `HTTP/1.1 401 Unauthorized` | `admin DENIED status=401 error=invalid_token path=/admin/customers` | pass |
+| 2026-10-11 | `docker compose exec backend pytest -q` (full suite) | 129 passed, 1 warning | — | pass |
+| 2026-10-11 | `npm run build` in the frontend container | built without errors | — | pass |
+| — | 2 — verified chat session open, then `/admin/customers` in the same browser | not run | not run | not run |
+| — | 4 — `docker compose logs -f backend` watched during the owner's steps 1–3 | not run | not run | not run |
