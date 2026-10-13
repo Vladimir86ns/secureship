@@ -1,26 +1,10 @@
-# 6.5 Deployment / local dev topology — Bonus tier (Ollama containerized)
+# 6.5 Deployment topology — Bonus tier (Ollama in Docker) — Not implemented
 
-Source: `docs/SecureShip-5Week-Program.md`, section 6.5 (line 703). Copied verbatim as the starting reference.
+Regenerated against the implementation (Week 5). Spec reference: Section 6.5, bonus tier.
 
-```mermaid
-flowchart LR
-    subgraph DevMachine["Engineer's MacBook — full-Docker mode"]
-        direction TB
-        subgraph Compose["docker-compose up (everything containerized)"]
-            direction TB
-            ReactC2["frontend container"]
-            PyC2["backend container"]
-            PgC2[("postgres container")]
-            OllamaC["ollama container<br/>(ollama/ollama image,<br/>NO Metal access — CPU-only)"]
-        end
-        Browser2[Browser]
-    end
+**Status: not implemented (optional bonus, not attempted).**
 
-    Browser2 --> ReactC2
-    ReactC2 --> PyC2
-    PyC2 -->|"ollama:11434<br/>(container-to-container)"| OllamaC
-    PyC2 --> PgC2
-
-    style Compose fill:#e6ffe6,stroke:#339933,stroke-width:2px
-    style OllamaC fill:#ffe6e6,stroke:#cc3333,stroke-width:2px
-```
+There is no diagram here on purpose. `docker-compose.yml` has three services — `frontend`, `backend`, `postgres` — and
+no `ollama` service (`docker-compose.yml:1-60`). Ollama runs on the host and the backend reaches it through
+`host.docker.internal:11434` (`OLLAMA_BASE_URL`, `docker-compose.yml:25, 37-38`). The real topology is diagram
+[07](07-deployment-topology.md).

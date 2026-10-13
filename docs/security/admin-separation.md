@@ -40,7 +40,7 @@ INFO  [secureship.admin] admin UPDATE entity=shipment id=3f2a9c1e fields=status 
   `services/customer_identity.py`) does not import `ChatSession`, the verification or tool modules, or
   `get_current_session`; the admin API has no endpoint for chat sessions. Admin calls never create a chat session or
   set a cookie.
-- Deleting a customer unlinks its chat sessions (`ON DELETE SET NULL`, `backend/models.py:106-112`); a verified session
+- Deleting a customer unlinks its chat sessions (`ON DELETE SET NULL`, `backend/models.py:106-113`); a verified session
   left without `customer_id` fails closed in `require_verified` (`backend/services/tools.py:320`). It is never moved to
   another customer.
 
