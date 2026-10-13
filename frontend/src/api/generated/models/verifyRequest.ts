@@ -6,5 +6,6 @@
  */
 
 export interface VerifyRequest {
+  /** @pattern ^\d{6}$ */
   code: string;
 }

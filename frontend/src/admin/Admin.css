@@ -2,6 +2,8 @@
   width: 100%;
   max-width: 1200px;
   align-self: stretch;
+  /* fill the page and start at the top: #root centers short content, which made the panel move as rows changed */
+  flex: 1 0 auto;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -68,11 +70,52 @@
   border-color: var(--accent-border);
 }
 
-.admin-toolbar {
+.admin section {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* Stays at the top while the table scrolls under it; fixed height, one row, so typing never moves it. */
+.admin-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  box-sizing: border-box;
+  height: 56px;
+  display: flex;
+  flex-wrap: nowrap;
   align-items: center;
   gap: var(--space-3);
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border);
+}
+
+.admin-toolbar h3 {
+  margin: 0;
+  flex: none;
+}
+
+.admin-toolbar > button {
+  flex: none;
+  white-space: nowrap;
+}
+
+.admin .admin-toolbar label {
+  flex: 0 1 auto;
+  min-width: 0;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.admin-toolbar select {
+  min-width: 0;
+  max-width: 260px;
+}
+
+.admin-results {
+  min-height: 50vh;
 }
 
 .admin-error {
@@ -151,4 +194,92 @@
 
 .admin-form .admin-error {
   grid-column: 1 / -1;
+}
+
+.admin-empty {
+  color: var(--text);
+  font-style: italic;
+}
+
+.admin-hint {
+  display: block;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.admin input.admin-search {
+  margin-left: auto;
+  flex: 0 1 260px;
+  min-width: 120px;
+  box-sizing: border-box;
+  height: 34px;
+}
+
+.admin-card-page {
+  flex: 1 1 auto;
+  justify-content: center;
+  align-items: center;
+}
+
+.admin-card {
+  width: 100%;
+  max-width: 400px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  padding: var(--space-6) var(--space-5);
+  text-align: center;
+}
+
+.admin-card h2 {
+  margin: 0;
+}
+
+.admin-card-text {
+  color: var(--text);
+  line-height: 1.5;
+}
+
+.admin-card .admin-error {
+  text-align: left;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.admin button.admin-card-button {
+  width: 100%;
+  padding: var(--space-2) var(--space-4);
+  font-weight: 500;
+}
+
+.admin button.admin-card-button:hover {
+  filter: brightness(1.08);
+}
+
+.admin-card-loading {
+  color: var(--text);
+}
+
+@media (max-width: 480px) {
+  .admin-card {
+    padding: var(--space-5) var(--space-4);
+  }
+
+  /* two fixed rows: title, filter and New on top; search below, full width */
+  .admin-toolbar {
+    height: 96px;
+    flex-wrap: wrap;
+    align-content: center;
+    row-gap: var(--space-2);
+  }
+
+  .admin input.admin-search {
+    margin-left: 0;
+    flex: 1 1 100%;
+  }
 }

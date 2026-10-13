@@ -1,7 +1,9 @@
 from datetime import datetime
-from typing import Literal
+from typing import Annotated, Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, StringConstraints
+
+CHAT_MESSAGE_MAX_LENGTH = 2000
 
 
 EscalationStep = Literal["acknowledging", "color_shift", "human_joined", "reading_up", "greeting"]
@@ -17,7 +19,7 @@ class ChatTurn(BaseModel):
 
 
 class ChatRequest(BaseModel):
-    message: str
+    message: Annotated[str, StringConstraints(max_length=CHAT_MESSAGE_MAX_LENGTH)]
 
 
 class ChatResponse(BaseModel):
@@ -38,7 +40,8 @@ class SessionResponse(BaseModel):
 
 
 class VerifyRequest(BaseModel):
-    code: str
+    # Checked before check_verification_code, so a malformed code never uses up an attempt.
+    code: Annotated[str, StringConstraints(strip_whitespace=True, pattern=r"^\d{6}$")]
 
 
 class VerifyResponse(BaseModel):

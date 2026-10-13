@@ -41,7 +41,7 @@ INFO  [secureship.admin] admin UPDATE entity=shipment id=3f2a9c1e fields=status 
   `get_current_session`; the admin API has no endpoint for chat sessions. Admin calls never create a chat session or
   set a cookie.
 - Deleting a customer unlinks its chat sessions (`ON DELETE SET NULL`, `backend/models.py:106-112`); a verified session
-  left without `customer_id` fails closed in `require_verified` (`backend/services/tools.py:290`). It is never moved to
+  left without `customer_id` fails closed in `require_verified` (`backend/services/tools.py:320`). It is never moved to
   another customer.
 
 **Remaining risk (by role, not a code path):** an admin manages the data the chat checks identities against, e.g. could
@@ -52,9 +52,9 @@ and of mocked SMS, not a way for the admin's login to turn into a chat session.
 
 - `/admin/*` requires an Auth0 access token; the session cookie is not read there (the admin router does not depend on
   `get_current_session`).
-- The model has exactly three tools (`TOOLS`, `backend/services/tools.py:238`): `verify_identity`,
+- The model has exactly three tools (`TOOLS`, `backend/services/tools.py:257`): `verify_identity`,
   `send_verification_code`, `lookup_shipments`. Any other name is refused as `unknown_tool` by
-  `authorize_tool_call` (`:300-304`). No tool makes HTTP requests or calls admin code.
+  `authorize_tool_call` (`:330-334`). No tool makes HTTP requests or calls admin code.
 - The chat code (`services/tools.py`, `services/chat.py`, `services/verification.py`, `routers/chat.py`,
   `routers/verify.py`, `routers/session.py`, `dependencies.py`) does not import any admin module.
 

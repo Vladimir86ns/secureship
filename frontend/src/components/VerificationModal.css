@@ -127,3 +127,21 @@
 .modal-close:hover {
   background: var(--social-bg);
 }
+
+.modal-start-over {
+  display: block;
+  width: 100%;
+  margin-top: var(--space-3);
+  padding: var(--space-2);
+  font-size: 13px;
+  background: none;
+  border: none;
+  color: var(--text);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.modal-start-over:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

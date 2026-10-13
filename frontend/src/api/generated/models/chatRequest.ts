@@ -6,5 +6,6 @@
  */
 
 export interface ChatRequest {
+  /** @maxLength 2000 */
   message: string;
 }

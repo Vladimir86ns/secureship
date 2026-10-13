@@ -1,9 +1,15 @@
 import { useState } from 'react'
-import { useResendApiVerifyResendPost, useVerifyApiVerifyPost } from '../api/generated/default/default'
+import {
+  useCancelApiVerifyCancelPost,
+  useResendApiVerifyResendPost,
+  useVerifyApiVerifyPost,
+} from '../api/generated/default/default'
 import './VerificationModal.css'
 
 type Props = {
-  onVerified: (verifiedAt: string | null | undefined) => void
+  onVerified: (state: string, verifiedAt: string | null | undefined) => void
+  // "Start over": the backend dropped the code and the typed details (state is back to anonymous)
+  onCancelled: (state: string) => void
   onClose: () => void
 }
 
@@ -15,6 +21,7 @@ function extractErrorMessage(err: unknown, fallback: string): string {
     if (detail?.error === 'invalid_code') return 'That code was incorrect. Please try again.'
     if (detail?.error === 'code_expired') return 'That code has expired. Request a new one below.'
     if (detail?.error === 'too_many_attempts') return 'Too many attempts. Request a new code below.'
+    if (detail?.error === 'already_verified') return 'You are already verified.'
     if (detail?.error === 'cooldown') {
       const seconds = detail?.retry_after_seconds ?? 0
       return `Please wait ${seconds}s before requesting another code.`
@@ -23,13 +30,14 @@ function extractErrorMessage(err: unknown, fallback: string): string {
   return fallback
 }
 
-export function VerificationModal({ onVerified, onClose }: Props) {
+export function VerificationModal({ onVerified, onCancelled, onClose }: Props) {
   const [code, setCode] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [resendMessage, setResendMessage] = useState<string | null>(null)
 
   const verifyMutation = useVerifyApiVerifyPost()
   const resendMutation = useResendApiVerifyResendPost()
+  const cancelMutation = useCancelApiVerifyCancelPost()
 
   async function handleSubmit() {
     setError(null)
@@ -41,7 +49,7 @@ export function VerificationModal({ onVerified, onClose }: Props) {
     }
     try {
       const response = await verifyMutation.mutateAsync({ data: { code: trimmed } })
-      onVerified(response.verified_at)
+      onVerified(response.state, response.verified_at)
     } catch (err) {
       setError(extractErrorMessage(err, 'Verification failed — please try again.'))
     }
@@ -55,6 +63,17 @@ export function VerificationModal({ onVerified, onClose }: Props) {
       setResendMessage('A new code has been sent.')
     } catch (err) {
       setError(extractErrorMessage(err, 'Could not resend a code right now.'))
+    }
+  }
+
+  async function handleStartOver() {
+    setError(null)
+    setResendMessage(null)
+    try {
+      const response = await cancelMutation.mutateAsync()
+      onCancelled(response.state)
+    } catch (err) {
+      setError(extractErrorMessage(err, 'Could not start over right now — please try again.'))
     }
   }
 
@@ -82,6 +101,9 @@ export function VerificationModal({ onVerified, onClose }: Props) {
             Resend code
           </button>
         </div>
+        <button type="button" className="modal-start-over" onClick={handleStartOver} disabled={cancelMutation.isPending}>
+          Start over
+        </button>
         <button type="button" className="modal-close" onClick={onClose} aria-label="Close">
           ×
         </button>

@@ -95,20 +95,39 @@ async def _tool_verify_identity(
     if session.state == SessionState.anonymous:
         transition_state(session, SessionState.collecting_identity)
 
-    session.pending_first_name = arguments["first_name"]
-    session.pending_last_name = arguments["last_name"]
-    session.pending_address = arguments["address"]
-    session.pending_phone_number = arguments["phone_number"]
+    # _validate_identity_arguments already allowed only str/int; a phone number sent as a number becomes text
+    fields = {f: str(arguments[f]).strip() for f in required}
+    session.pending_first_name = fields["first_name"]
+    session.pending_last_name = fields["last_name"]
+    session.pending_address = fields["address"]
+    session.pending_phone_number = fields["phone_number"]
 
     customer = await match_customer(
         db,
-        arguments["first_name"],
-        arguments["last_name"],
-        arguments["address"],
-        arguments["phone_number"],
+        fields["first_name"],
+        fields["last_name"],
+        fields["address"],
+        fields["phone_number"],
     )
     session.pending_customer_id = customer.id if customer else None
     return {"matched": customer is not None}
+
+
+_IDENTITY_FIELDS = ("first_name", "last_name", "address", "phone_number")
+_IDENTITY_FIELD_MAX_LENGTH = 200  # the same limit as the admin forms (admin_schemas.py)
+
+
+def _validate_identity_arguments(arguments: dict[str, Any]) -> None:
+    """Each identity field, if present, must be text (or a plain number, e.g. a phone number) of sane length.
+    Anything else (a list, an object, a boolean) is refused here instead of crashing the matcher."""
+    for field in _IDENTITY_FIELDS:
+        value = arguments.get(field)
+        if value is None:
+            continue
+        if isinstance(value, bool) or not isinstance(value, (str, int)):
+            raise ToolDenied("invalid_arguments", problem="identity_field_not_text")
+        if len(str(value)) > _IDENTITY_FIELD_MAX_LENGTH:
+            raise ToolDenied("invalid_arguments", problem="identity_field_too_long")
 
 
 async def _tool_send_verification_code(
@@ -243,6 +262,17 @@ TOOLS: dict[str, ToolSpec] = {
             handler=_tool_verify_identity,
             is_offered=lambda s: s.state in _IDENTITY_STATES,
             kind="identity",
+            invalid_args_detail={
+                "identity_field_too_long": (
+                    "Each of first_name, last_name, address and phone_number must be at most 200 characters. "
+                    "Ask the visitor to check their details and call verify_identity again."
+                ),
+                "default": (
+                    "Send first_name, last_name, address and phone_number as four plain text values, "
+                    "then call verify_identity again."
+                ),
+            },
+            validate=_validate_identity_arguments,
         ),
         ToolSpec(
             definition=SEND_VERIFICATION_CODE_TOOL,

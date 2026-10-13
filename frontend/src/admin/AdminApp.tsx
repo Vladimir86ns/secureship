@@ -26,19 +26,21 @@ export function AdminApp() {
 
   if (!AUTH0_CONFIGURED) {
     return (
-      <AdminShell>
+      <AdminCard>
         <p className="admin-error">
           Admin login is not configured: set VITE_AUTH0_DOMAIN, VITE_AUTH0_CLIENT_ID and VITE_AUTH0_AUDIENCE.
         </p>
-      </AdminShell>
+      </AdminCard>
     )
   }
 
   if (isLoading) {
     return (
-      <AdminShell>
-        <p>Loading…</p>
-      </AdminShell>
+      <AdminCard>
+        <p className="admin-card-loading" aria-live="polite">
+          Loading…
+        </p>
+      </AdminCard>
     )
   }
 
@@ -46,13 +48,17 @@ export function AdminApp() {
 
   if (!isAuthenticated) {
     return (
-      <AdminShell>
-        {error && <p className="admin-error">Login failed: {error.message}</p>}
-        <p>Sign in with your admin account to manage customers, shipments and packages.</p>
-        <button type="button" className="admin-primary" onClick={login}>
+      <AdminCard>
+        <p className="admin-card-text">Sign in to manage customers, shipments and packages.</p>
+        {error && (
+          <p className="admin-error" role="alert">
+            Login failed: {error.message}
+          </p>
+        )}
+        <button type="button" className="admin-primary admin-card-button" onClick={login}>
           Log in
         </button>
-      </AdminShell>
+      </AdminCard>
     )
   }
 
@@ -113,6 +119,18 @@ function AdminPages() {
       )}
       {tab === 'packages' && <PackagesPage shipmentId={shipmentId} onShipmentChange={setShipmentId} />}
     </>
+  )
+}
+
+// Centered card for the states before the panel: not configured, loading, signed out.
+function AdminCard({ children }: { children: ReactNode }) {
+  return (
+    <div className="admin admin-card-page">
+      <div className="admin-card">
+        <h2>SecureShip admin</h2>
+        {children}
+      </div>
+    </div>
   )
 }
 

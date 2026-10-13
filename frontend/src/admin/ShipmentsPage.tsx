@@ -8,9 +8,12 @@ import {
   useUpdateShipment,
 } from '../api/generated/admin/admin'
 import { ShipmentStatus, type ShipmentIn, type ShipmentOut } from '../api/generated/models'
+import { AdminResults } from './AdminResults'
 import { adminErrorMessage } from './errors'
-import { Field } from './Field'
+import { Field, TEXT_MAX_LENGTH } from './Field'
 import { invalidateAdminQueries } from './invalidate'
+import { matchesText, matchesTracking, normalizeQuery } from './search'
+import { SearchBox } from './SearchBox'
 
 const STATUSES = Object.values(ShipmentStatus)
 
@@ -44,6 +47,7 @@ export function ShipmentsPage({ customerId, onCustomerChange, onShowPackages }: 
   const [form, setForm] = useState<ShipmentIn>(emptyShipment(null))
   const [formError, setFormError] = useState<string | null>(null)
   const [listError, setListError] = useState<string | null>(null)
+  const [search, setSearch] = useState('')
 
   function openForm(shipment: ShipmentOut | 'new') {
     setEditing(shipment)
@@ -93,6 +97,14 @@ export function ShipmentsPage({ customerId, onCustomerChange, onShowPackages }: 
   const saving = create.isPending || update.isPending
   const set = (key: keyof ShipmentIn) => (value: string) => setForm((f) => ({ ...f, [key]: value }))
 
+  const query = normalizeQuery(search)
+  const visible = shipments.data?.filter(
+    (s) =>
+      !query ||
+      matchesTracking(query, s.tracking_number) ||
+      matchesText(query, [s.customer_name, s.status, s.carrier, s.origin, s.destination]),
+  )
+
   return (
     <section>
       <div className="admin-toolbar">
@@ -111,6 +123,7 @@ export function ShipmentsPage({ customerId, onCustomerChange, onShowPackages }: 
         <button type="button" className="admin-primary" onClick={() => openForm('new')}>
           New shipment
         </button>
+        <SearchBox value={search} onChange={setSearch} placeholder="Search shipments…" />
       </div>
 
       {editing && (
@@ -128,6 +141,7 @@ export function ShipmentsPage({ customerId, onCustomerChange, onShowPackages }: 
                 </option>
               ))}
             </select>
+            {customers.data?.length === 0 && <span className="admin-hint">Create a customer first.</span>}
           </label>
           <Field label="Tracking number" value={form.tracking_number} onChange={set('tracking_number')} required />
           <label>
@@ -140,9 +154,9 @@ export function ShipmentsPage({ customerId, onCustomerChange, onShowPackages }: 
               ))}
             </select>
           </label>
-          <Field label="Carrier" value={form.carrier} onChange={set('carrier')} required />
-          <Field label="Origin" value={form.origin} onChange={set('origin')} required />
-          <Field label="Destination" value={form.destination} onChange={set('destination')} required />
+          <Field label="Carrier" value={form.carrier} onChange={set('carrier')} maxLength={TEXT_MAX_LENGTH} required />
+          <Field label="Origin" value={form.origin} onChange={set('origin')} maxLength={TEXT_MAX_LENGTH} required />
+          <Field label="Destination" value={form.destination} onChange={set('destination')} maxLength={TEXT_MAX_LENGTH} required />
           <Field
             label="Estimated delivery"
             type="date"
@@ -162,61 +176,69 @@ export function ShipmentsPage({ customerId, onCustomerChange, onShowPackages }: 
         </form>
       )}
 
-      {listError && <p className="admin-error">{listError}</p>}
-      {shipments.isPending && <p>Loading…</p>}
-      {shipments.isError && <p className="admin-error">{adminErrorMessage(shipments.error)}</p>}
-      {shipments.data && (
-        <div className="admin-table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Tracking number</th>
-                <th>Customer</th>
-                <th>Status</th>
-                <th>Carrier</th>
-                <th>Route</th>
-                <th>Est. delivery</th>
-                <th>Last update</th>
-                <th>Packages</th>
-                <th />
-              </tr>
-            </thead>
-            <tbody>
-              {shipments.data.map((s) => (
-                <tr key={s.id}>
-                  <td>{s.tracking_number}</td>
-                  <td>{s.customer_name}</td>
-                  <td>{s.status}</td>
-                  <td>{s.carrier}</td>
-                  <td>
-                    {s.origin} → {s.destination}
-                  </td>
-                  <td>{s.estimated_delivery}</td>
-                  <td>{new Date(s.last_update).toLocaleString()}</td>
-                  <td>
-                    <button type="button" onClick={() => onShowPackages(s.id)}>
-                      {s.package_count}
-                    </button>
-                  </td>
-                  <td className="admin-actions">
-                    <button type="button" onClick={() => openForm(s)}>
-                      Edit
-                    </button>
-                    <button
-                      type="button"
-                      className="admin-danger"
-                      onClick={() => deleteShipment(s)}
-                      disabled={remove.isPending}
-                    >
-                      Delete
-                    </button>
-                  </td>
+      <AdminResults query={query}>
+        {listError && <p className="admin-error">{listError}</p>}
+        {shipments.isPending && <p>Loading…</p>}
+        {shipments.isError && <p className="admin-error">{adminErrorMessage(shipments.error)}</p>}
+        {shipments.data?.length === 0 && (
+          <p className="admin-empty">{customerId ? 'No shipments for this customer.' : 'No shipments yet.'}</p>
+        )}
+        {shipments.data && shipments.data.length > 0 && visible?.length === 0 && (
+          <p className="admin-empty">No matches for “{search.trim()}”</p>
+        )}
+        {visible && visible.length > 0 && (
+          <div className="admin-table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Tracking number</th>
+                  <th>Customer</th>
+                  <th>Status</th>
+                  <th>Carrier</th>
+                  <th>Route</th>
+                  <th>Est. delivery</th>
+                  <th>Last update</th>
+                  <th>Packages</th>
+                  <th />
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+              </thead>
+              <tbody>
+                {visible.map((s) => (
+                  <tr key={s.id}>
+                    <td>{s.tracking_number}</td>
+                    <td>{s.customer_name}</td>
+                    <td>{s.status}</td>
+                    <td>{s.carrier}</td>
+                    <td>
+                      {s.origin} → {s.destination}
+                    </td>
+                    <td>{s.estimated_delivery}</td>
+                    <td>{new Date(s.last_update).toLocaleString()}</td>
+                    <td>
+                      <button type="button" onClick={() => onShowPackages(s.id)}>
+                        {s.package_count}
+                      </button>
+                    </td>
+                    <td className="admin-actions">
+                      <button type="button" onClick={() => openForm(s)}>
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        className="admin-danger"
+                        onClick={() => deleteShipment(s)}
+                        disabled={remove.isPending}
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </AdminResults>
     </section>
   )
 }

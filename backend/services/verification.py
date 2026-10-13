@@ -6,7 +6,7 @@ from datetime import datetime, timedelta, timezone
 from config import settings
 from models import ChatSession, SessionState
 from services.mock_sms import send_mock_sms
-from services.transcript import append_internal_event, transition_state
+from services.transcript import append_internal_event, append_message, transition_state
 
 
 def generate_code() -> str:
@@ -86,6 +86,62 @@ def check_verification_code(session: ChatSession, code: str) -> dict:
     session.verified_at = now
     transition_state(session, SessionState.verified)
     append_internal_event(session, "system_event", "verification succeeded", event="verification_outcome")
+    return {"ok": True}
+
+
+def _clear_pending_verification(session: ChatSession) -> None:
+    """Forget the code and the identity the visitor typed. Never touches customer_id or verified_at."""
+    session.code_hash = None
+    session.code_expires_at = None
+    session.code_attempts = 0
+    session.pending_customer_id = None
+    session.pending_first_name = None
+    session.pending_last_name = None
+    session.pending_address = None
+    session.pending_phone_number = None
+
+
+def restart_if_code_unusable(session: ChatSession) -> bool:
+    """Section 6.2 CodeExpired -> CollectingIdentity. Called at the start of a chat turn: if the code can no
+    longer be used (expired, or every attempt used up), verification starts over so the visitor can give their
+    details again in the chat. The code modal's Resend still works for as long as no chat message is sent.
+    """
+    if session.state != SessionState.awaiting_code:
+        return False
+
+    expired = session.code_expires_at is not None and datetime.now(timezone.utc) > session.code_expires_at
+    used_up = session.code_attempts >= session.code_max_attempts
+    if not (expired or used_up):
+        return False
+
+    _clear_pending_verification(session)
+    transition_state(session, SessionState.collecting_identity)
+    reason = "Your verification code expired" if expired else "There were too many incorrect code attempts"
+    append_message(
+        session,
+        "system_event",
+        f"{reason}, so verification was restarted. Share your details again to get a new code.",
+    )
+    append_internal_event(session, "system_event", "verification restarted", event="verification_outcome")
+    return True
+
+
+_CANCELLABLE_STATES = (SessionState.collecting_identity, SessionState.code_sent, SessionState.awaiting_code)
+
+
+def cancel_verification(session: ChatSession) -> dict:
+    """Section 6.2 "gives up -> Anonymous": the visitor's "Start over". Forgets the code and the typed identity.
+    Never sets customer_id and never touches a verified session.
+    """
+    if session.state == SessionState.verified:
+        return {"ok": False, "error": "already_verified"}
+    if session.state not in _CANCELLABLE_STATES:
+        return {"ok": True}  # anonymous: nothing to cancel
+
+    _clear_pending_verification(session)
+    transition_state(session, SessionState.anonymous)
+    append_message(session, "system_event", "Verification cancelled.")
+    append_internal_event(session, "system_event", "verification cancelled", event="verification_outcome")
     return {"ok": True}
 
 

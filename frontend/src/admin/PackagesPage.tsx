@@ -8,9 +8,12 @@ import {
   useUpdatePackage,
 } from '../api/generated/admin/admin'
 import type { PackageIn, PackageOut } from '../api/generated/models'
+import { AdminResults } from './AdminResults'
 import { adminErrorMessage } from './errors'
-import { Field } from './Field'
+import { DESCRIPTION_MAX_LENGTH, Field } from './Field'
 import { invalidateAdminQueries } from './invalidate'
+import { matchesText, matchesTracking, normalizeQuery } from './search'
+import { SearchBox } from './SearchBox'
 
 // Decimals are kept as strings end to end (the API accepts and returns them as strings), so nothing is rounded.
 type PackageForm = Omit<PackageIn, 'weight_kg' | 'declared_value'> & { weight_kg: string; declared_value: string }
@@ -36,6 +39,7 @@ export function PackagesPage({ shipmentId, onShipmentChange }: Props) {
   const [form, setForm] = useState<PackageForm>(emptyPackage(null))
   const [formError, setFormError] = useState<string | null>(null)
   const [listError, setListError] = useState<string | null>(null)
+  const [search, setSearch] = useState('')
 
   function openForm(pkg: PackageOut | 'new') {
     setEditing(pkg)
@@ -82,6 +86,11 @@ export function PackagesPage({ shipmentId, onShipmentChange }: Props) {
   const saving = create.isPending || update.isPending
   const set = (key: keyof PackageForm) => (value: string) => setForm((f) => ({ ...f, [key]: value }))
 
+  const query = normalizeQuery(search)
+  const visible = packages.data?.filter(
+    (p) => !query || matchesTracking(query, p.tracking_number) || matchesText(query, [p.description]),
+  )
+
   return (
     <section>
       <div className="admin-toolbar">
@@ -100,6 +109,7 @@ export function PackagesPage({ shipmentId, onShipmentChange }: Props) {
         <button type="button" className="admin-primary" onClick={() => openForm('new')}>
           New package
         </button>
+        <SearchBox value={search} onChange={setSearch} placeholder="Search packages…" />
       </div>
 
       {editing && (
@@ -117,8 +127,9 @@ export function PackagesPage({ shipmentId, onShipmentChange }: Props) {
                 </option>
               ))}
             </select>
+            {shipments.data?.length === 0 && <span className="admin-hint">Create a shipment first.</span>}
           </label>
-          <Field label="Description" value={form.description} onChange={set('description')} required />
+          <Field label="Description" value={form.description} onChange={set('description')} maxLength={DESCRIPTION_MAX_LENGTH} required />
           <Field
             label="Weight (kg)"
             type="number"
@@ -149,47 +160,55 @@ export function PackagesPage({ shipmentId, onShipmentChange }: Props) {
         </form>
       )}
 
-      {listError && <p className="admin-error">{listError}</p>}
-      {packages.isPending && <p>Loading…</p>}
-      {packages.isError && <p className="admin-error">{adminErrorMessage(packages.error)}</p>}
-      {packages.data && (
-        <div className="admin-table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Shipment</th>
-                <th>Description</th>
-                <th>Weight (kg)</th>
-                <th>Declared value</th>
-                <th />
-              </tr>
-            </thead>
-            <tbody>
-              {packages.data.map((p) => (
-                <tr key={p.id}>
-                  <td>{p.tracking_number}</td>
-                  <td>{p.description}</td>
-                  <td>{p.weight_kg}</td>
-                  <td>{p.declared_value}</td>
-                  <td className="admin-actions">
-                    <button type="button" onClick={() => openForm(p)}>
-                      Edit
-                    </button>
-                    <button
-                      type="button"
-                      className="admin-danger"
-                      onClick={() => deletePackage(p)}
-                      disabled={remove.isPending}
-                    >
-                      Delete
-                    </button>
-                  </td>
+      <AdminResults query={query}>
+        {listError && <p className="admin-error">{listError}</p>}
+        {packages.isPending && <p>Loading…</p>}
+        {packages.isError && <p className="admin-error">{adminErrorMessage(packages.error)}</p>}
+        {packages.data?.length === 0 && (
+          <p className="admin-empty">{shipmentId ? 'No packages for this shipment.' : 'No packages yet.'}</p>
+        )}
+        {packages.data && packages.data.length > 0 && visible?.length === 0 && (
+          <p className="admin-empty">No matches for “{search.trim()}”</p>
+        )}
+        {visible && visible.length > 0 && (
+          <div className="admin-table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Shipment</th>
+                  <th>Description</th>
+                  <th>Weight (kg)</th>
+                  <th>Declared value</th>
+                  <th />
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+              </thead>
+              <tbody>
+                {visible.map((p) => (
+                  <tr key={p.id}>
+                    <td>{p.tracking_number}</td>
+                    <td>{p.description}</td>
+                    <td>{p.weight_kg}</td>
+                    <td>{p.declared_value}</td>
+                    <td className="admin-actions">
+                      <button type="button" onClick={() => openForm(p)}>
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        className="admin-danger"
+                        onClick={() => deletePackage(p)}
+                        disabled={remove.isPending}
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </AdminResults>
     </section>
   )
 }

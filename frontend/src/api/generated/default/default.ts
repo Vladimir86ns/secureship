@@ -320,6 +320,69 @@ export const useResendApiVerifyResendPost = <TError = unknown,
       return useMutation(mutationOptions, queryClient);
     }
     /**
+ * The code modal's "Start over": back to anonymous. Refused for a verified session.
+ * @summary Cancel
+ */
+export const cancelApiVerifyCancelPost = (
+    
+ signal?: AbortSignal
+) => {
+      
+      
+      return apiMutator<VerifyResponse>(
+      {url: `/api/verify/cancel`, method: 'POST', signal
+    },
+      );
+    }
+  
+
+
+export const getCancelApiVerifyCancelPostMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelApiVerifyCancelPost>>, TError,void, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof cancelApiVerifyCancelPost>>, TError,void, TContext> => {
+
+const mutationKey = ['cancelApiVerifyCancelPost'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof cancelApiVerifyCancelPost>>, void> = () => {
+          
+
+          return  cancelApiVerifyCancelPost()
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CancelApiVerifyCancelPostMutationResult = NonNullable<Awaited<ReturnType<typeof cancelApiVerifyCancelPost>>>
+    
+    export type CancelApiVerifyCancelPostMutationError = unknown
+
+    /**
+ * @summary Cancel
+ */
+export const useCancelApiVerifyCancelPost = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelApiVerifyCancelPost>>, TError,void, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof cancelApiVerifyCancelPost>>,
+        TError,
+        void,
+        TContext
+      > => {
+
+      const mutationOptions = getCancelApiVerifyCancelPostMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    /**
  * @summary Health
  */
 export const healthHealthGet = (
