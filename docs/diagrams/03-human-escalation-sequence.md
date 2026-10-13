@@ -1,6 +1,6 @@
 # 6.2b Human escalation sequence (Epic G — cosmetic, scripted)
 
-Regenerated against the implementation (Week 5). Spec reference: Section 6.2b.
+Regenerated against the implementation (Week 5).
 
 Differences from the starting diagram: the hand-off can start from **any** state (also while identity is being
 collected or a code is pending), not only from Anonymous and Verified; it is triggered by a regex on the visitor's

@@ -1,6 +1,6 @@
 # 6.5 Deployment / local dev topology
 
-Regenerated against the implementation (Week 5). Spec reference: Section 6.5 (baseline tier).
+Regenerated against the implementation (Week 5). Baseline local setup.
 
 Differences from the starting diagram: the frontend is the Vite dev server on port 5173 (not 3000); the browser loads
 the app from 5173 but calls the API on 8000 directly (CORS allows `FRONTEND_ORIGIN`); REST/JSON only; Auth0 is used by

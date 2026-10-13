@@ -1,6 +1,6 @@
 # 6.4 Data model (ERD)
 
-Regenerated against the implementation (Week 5). Spec reference: Section 6.4. Source of truth: `backend/models.py` and
+Regenerated against the implementation (Week 5). Source of truth: `backend/models.py` and
 the Alembic migrations in `backend/alembic/versions/`.
 
 Differences from the starting diagram: customers also store normalized copies of the four identity fields (indexed,

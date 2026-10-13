@@ -1,6 +1,6 @@
 # 6.2 Conversation / identity-gating state machine
 
-Regenerated against the implementation (Week 5). Spec reference: Section 6.2.
+Regenerated against the implementation (Week 5).
 
 The states are exactly the `SessionState` enum (`backend/models.py:16-22`). Each transition is labelled with the code
 that makes it. Differences from the starting diagram:

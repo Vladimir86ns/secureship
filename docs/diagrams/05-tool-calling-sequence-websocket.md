@@ -1,6 +1,6 @@
 # 6.3b Tool-calling sequence over WebSockets — Not implemented
 
-Regenerated against the implementation (Week 5). Spec reference: Section 6.3b (the optional upgrade).
+Regenerated against the implementation (Week 5). This was an optional upgrade.
 
 **Status: not implemented. Deliberate decision: the chat uses plain HTTP (diagram [04](04-tool-calling-sequence-http.md)).**
 

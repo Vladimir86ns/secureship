@@ -1,6 +1,6 @@
 # 6.3 Tool-calling sequence over HTTP (the gating enforcement point)
 
-Regenerated against the implementation (Week 5). Spec reference: Section 6.3. This is the transport the project uses
+Regenerated against the implementation (Week 5). This is the transport the project uses
 (HTTP request/response, no WebSocket — see [05](05-tool-calling-sequence-websocket.md)).
 
 Differences from the starting diagram: the routes are `/api/chat` and `/api/verify`; the session comes from an httpOnly
@@ -54,7 +54,7 @@ sequenceDiagram
     Note over Tools: Enforcement point (F3):<br/>tool offered in this state?<br/>require_verified: state verified,<br/>customer_id and verified_at set.<br/>Only tracking_number is accepted.
     Tools->>DB: SELECT shipments WHERE customer_id = session.customer_id (+ tracking number if it appeared in the chat)
     DB-->>Tools: rows with packages
-    Tools-->>BE: Section 4.4 fields only, no internal ids
+    Tools-->>BE: shipment and package fields only, no internal ids
     BE->>LLM: tool result
     LLM-->>BE: plain-language answer
     BE-->>FE: {messages, state: verified}

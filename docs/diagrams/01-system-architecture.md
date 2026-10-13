@@ -1,6 +1,6 @@
 # 6.1 High-level system architecture
 
-Regenerated against the implementation (Week 5). Spec reference: Section 6.1.
+Regenerated against the implementation (Week 5).
 
 What changed against the starting diagram: the chat is HTTP only (no WebSocket); there is no separate session store —
 the session state and the transcript live in the same Postgres row (`chat_sessions`), keyed by an httpOnly cookie; the

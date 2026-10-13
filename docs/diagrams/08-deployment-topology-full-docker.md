@@ -1,6 +1,6 @@
 # 6.5 Deployment topology — Bonus tier (Ollama in Docker) — Not implemented
 
-Regenerated against the implementation (Week 5). Spec reference: Section 6.5, bonus tier.
+Regenerated against the implementation (Week 5). Optional bonus tier.
 
 **Status: not implemented (optional bonus, not attempted).**
 

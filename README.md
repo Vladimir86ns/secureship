@@ -94,7 +94,7 @@ docker compose logs -f backend | grep -E 'secureship\.(tools|admin|mock_sms)|MOC
    scope=session.customer_id tracking_filter=yes results=1`.
 6. In a second tab open http://localhost:5173/admin → **Log in** → Shipments. Type `FF75` (or `ff-751`) in the search
    box, change the status of FF751234951511, Save. The log shows `admin UPDATE entity=shipment … fields=status`.
-7. Back in the chat, ask again ("And now?") — the answer shows the new status. There is no push: the change is seen on
+7. Back in the chat, ask again ("And what's the status of FF751234951511 now?") — the answer shows the new status. There is no push: the change is seen on
    the **next** question.
 
 Edge cases to try: close the code popup and use **Enter code** in the header to reopen it; **Start over** in the popup
@@ -140,7 +140,8 @@ Every tool call goes through `execute_tool → authorize_tool_call`, and shipmen
 `require_verified` (`backend/services/tools.py:320-347`). `lookup_shipments` has no customer argument at all: any other
 key is refused as `forbidden_argument`, and the query is always `WHERE customer_id = session.customer_id`
 (`tools.py:170-180, 204-225`). A tracking number is used only if it actually appeared in this conversation
-(`tools.py:157-163, 211-217`). The model gets only the Section 4.4 fields, no internal ids (`tools.py:183-201`).
+(`tools.py:157-163, 211-217`). The model gets only the shipment and package fields (tracking number, status,
+carrier, origin, destination, dates, packages), no internal ids (`tools.py:183-201`).
 Attempts to get another customer's data are documented in
 [`docs/security/prompt-injection-test.md`](docs/security/prompt-injection-test.md).
 
@@ -226,7 +227,7 @@ never values (`backend/services/tools.py:375-426`). Admin logs contain the entit
 diagnostics are numbers only (`backend/ollama_client.py:47-55`). The one deliberate exception is the `[MOCK SMS]` line,
 which contains the phone number and the code because it *is* the simulated SMS (`backend/services/mock_sms.py:6-13`).
 
-**Ollama on the host.** The baseline setup of Section 6.5: the model runs on the host (with the Mac's GPU), and the
+**Ollama on the host.** The baseline local setup: the model runs on the host (with the Mac's GPU), and the
 backend calls it through `host.docker.internal` (diagram [07](docs/diagrams/07-deployment-topology.md)). Ollama in
 Docker was the optional bonus and was not built (diagram 08).
 
@@ -292,7 +293,7 @@ secureship/
 │       ├── admin/              admin panel (Auth0)
 │       └── api/                Orval output + the two axios clients
 ├── docs/
-│   ├── diagrams/               Section 6 diagrams, regenerated (Week 5)
+│   ├── diagrams/               architecture diagrams, regenerated (Week 5)
 │   ├── security/               admin separation, prompt-injection test
 │   └── demo-customers.md
 └── scripts/README.md           where the seed script lives
